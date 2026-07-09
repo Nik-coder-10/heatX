@@ -4,7 +4,7 @@
 # =============================================================================
 
 # Stage 1: Build
-FROM node:20-alpine AS builder
+FROM node:26-alpine AS builder
 
 ENV NODE_ENV=production \
     NPM_CONFIG_LOGLEVEL=warn
