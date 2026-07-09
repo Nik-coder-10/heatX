@@ -219,7 +219,7 @@ cutting-edge remote sensing science into actionable urban policy tools.
 ### 1. Clone
 
 ```bash
-git clone https://github.com/urbanheat/urbanheat-mitigation-platform.git
+git clone https://github.com/Nik-coder-10/heatX.git
 cd urbanheat-mitigation-platform
 ```
 
