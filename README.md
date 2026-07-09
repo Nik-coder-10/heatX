@@ -220,7 +220,7 @@ cutting-edge remote sensing science into actionable urban policy tools.
 
 ```bash
 git clone https://github.com/Nik-coder-10/heatX.git
-cd urbanheat-mitigation-platform
+cd heatX
 ```
 
 ### 2. Configure
