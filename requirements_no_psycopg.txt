@@ -14,7 +14,7 @@ python-dotenv==1.0.0
 # Database
 sqlalchemy==2.0.23
 alembic==1.13.1
-geoalchemy2==0.14.0
+geoalchemy2==0.20.0
 
 # Auth
 python-jose[cryptography]==3.3.0
