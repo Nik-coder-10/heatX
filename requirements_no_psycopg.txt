@@ -1,0 +1,65 @@
+# =============================================================================
+# Urban Heat Mitigation Platform - Python Dependencies
+# Usage: pip install -r requirements.txt
+# =============================================================================
+
+# Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.27.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-multipart==0.0.6
+python-dotenv==1.0.0
+
+# Database
+sqlalchemy==2.0.23
+alembic==1.13.1
+geoalchemy2==0.14.0
+
+# Auth
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+email-validator==2.1.0
+
+# Async / Task Queue
+celery==5.4.0
+redis==5.0.1
+flower==2.0.0
+aiofiles==23.2.1
+httpx==0.25.2
+
+# Geospatial
+geopandas==0.14.0
+shapely==2.0.3
+rasterio==1.3.9
+pyproj==3.6.1
+
+# ML / AI
+scikit-learn==1.4.1.post1
+torch==2.3.0
+torchvision==0.18.0
+tensorflow==2.16.1
+
+# Visualization
+pillow==10.1.0
+matplotlib==3.8.2
+seaborn==0.13.2
+reportlab==4.0.4
+weasyprint==61.2
+
+# Storage
+boto3==1.34.0
+minio==7.1.9
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.23.6
+
+# Observability
+prometheus-fastapi-instrumentator==6.1.0
+opentelemetry-api==1.24.0
+opentelemetry-sdk==1.24.0
+opentelemetry-instrumentation-fastapi==0.45b0
+opentelemetry-exporter-otlp==1.24.0
+opentelemetry-instrumentation-sqlalchemy==0.45b0
+opentelemetry-instrumentation-redis==0.45b0

@@ -1,0 +1,135 @@
+# =============================================================================
+# Urban Heat Mitigation Platform - Prometheus Configuration
+# =============================================================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+  external_labels:
+    environment: production
+    project: urbanheat
+
+rule_files:
+  - "alerts.yml"
+  - "recording-rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+      scheme: http
+      timeout: 10s
+      api_version: v2
+
+scrape_configs:
+  # Self-monitoring
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+        labels:
+          service: prometheus
+
+  # Backend (FastAPI)
+  - job_name: backend
+    scrape_interval: 10s
+    metrics_path: /api/v1/metrics
+    static_configs:
+      - targets: ["backend:8000"]
+        labels:
+          service: backend
+          component: api
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: ".*(http_request|http_response|db_query|model_inference).*"
+        action: keep
+
+  # Celery Worker
+  - job_name: celery
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["worker:8000"]
+        labels:
+          service: celery
+          component: worker
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: "celery.*"
+        action: keep
+
+  # PostgreSQL
+  - job_name: postgres
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["postgres:9187"]
+        labels:
+          service: postgres
+          component: database
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: "pg_(stat|database|activity|replication).*"
+        action: keep
+
+  # Redis
+  - job_name: redis
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["redis:9121"]
+        labels:
+          service: redis
+          component: cache
+
+  # Node Exporter (host metrics)
+  - job_name: node
+    scrape_interval: 30s
+    static_configs:
+      - targets: ["node-exporter:9100"]
+        labels:
+          service: node
+          component: host
+
+  # Nginx
+  - job_name: nginx
+    scrape_interval: 30s
+    static_configs:
+      - targets: ["nginx:9113"]
+        labels:
+          service: nginx
+          component: proxy
+
+  # Grafana
+  - job_name: grafana
+    scrape_interval: 30s
+    static_configs:
+      - targets: ["grafana:3000"]
+        labels:
+          service: grafana
+          component: monitoring
+
+  # MinIO
+  - job_name: minio
+    scrape_interval: 30s
+    metrics_path: /minio/v2/metrics/cluster
+    static_configs:
+      - targets: ["minio:9000"]
+        labels:
+          service: minio
+          component: storage
+
+  # OpenTelemetry Collector
+  - job_name: otel-collector
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["otel-collector:8888"]
+        labels:
+          service: otel-collector
+          component: observability
+
+  # Docker daemon
+  - job_name: docker
+    scrape_interval: 30s
+    static_configs:
+      - targets: ["docker:9323"]
+        labels:
+          service: docker
+          component: container

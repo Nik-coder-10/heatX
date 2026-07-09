@@ -1,0 +1,14 @@
+﻿blank_issues_enabled: false
+contact_links:
+  - name: Urban Heat Mitigation Platform Discussion
+    url: https://github.com/your-org/urban-heat-platform/discussions
+    about: Please ask and answer questions in our GitHub Discussions forum.
+  - name: Security Vulnerability
+    url: https://github.com/your-org/urban-heat-platform/security/policy
+    about: Please report security vulnerabilities to our security contact or use the private vulnerability reporting tool.
+  - name: Documentation
+    url: https://github.com/your-org/urban-heat-platform/docs
+    about: Check our documentation before creating an issue.
+  - name: Community Support
+    url: https://github.com/your-org/urban-heat-platform/discussions/categories/q-a
+    about: Get help from the community via GitHub Discussions.

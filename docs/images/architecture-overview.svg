@@ -1,0 +1,174 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" font-family="'Segoe UI', Arial, sans-serif">
+  <defs>
+    <linearGradient id="sat" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a73e8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d47a1;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="proc" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#34a853;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1b5e20;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="ml" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ea4335;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#b71c1c;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="rec" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbc04;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f57f17;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="front" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#059669;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#065f46;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="900" fill="#f8fafc" rx="8"/>
+  <rect x="0" y="0" width="1200" height="60" fill="#0f172a" rx="8"/>
+  <text x="600" y="38" text-anchor="middle" fill="#fff" font-size="22" font-weight="bold">Urban Heat Mitigation Platform — Architecture Overview</text>
+
+  <!-- Layer 1: Data Acquisition -->
+  <rect x="50" y="80" width="1100" height="130" fill="#e3f2fd" rx="8" stroke="#1a73e8" stroke-width="1"/>
+  <text x="70" y="105" fill="#0d47a1" font-size="14" font-weight="bold">DATA ACQUISITION</text>
+
+  <rect x="70" y="120" width="200" height="70" fill="url(#sat)" rx="6" filter="url(#shadow)"/>
+  <text x="170" y="148" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">🌍 ISRO Bhuvan</text>
+  <text x="170" y="168" text-anchor="middle" fill="#e3f2fd" font-size="11">Indian Satellite Data</text>
+
+  <rect x="300" y="120" width="200" height="70" fill="url(#sat)" rx="6" filter="url(#shadow)"/>
+  <text x="400" y="148" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">🛰️ Landsat 8/9</text>
+  <text x="400" y="168" text-anchor="middle" fill="#e3f2fd" font-size="11">NASA/USGS Collection 2</text>
+
+  <rect x="530" y="120" width="200" height="70" fill="url(#sat)" rx="6" filter="url(#shadow)"/>
+  <text x="630" y="148" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">🛸 Sentinel-2</text>
+  <text x="630" y="168" text-anchor="middle" fill="#e3f2fd" font-size="11">ESA Copernicus</text>
+
+  <rect x="760" y="120" width="200" height="70" fill="url(#sat)" rx="6" filter="url(#shadow)"/>
+  <text x="860" y="148" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">📡 OpenWeatherMap</text>
+  <text x="860" y="168" text-anchor="middle" fill="#e3f2fd" font-size="11">Meteorological Data</text>
+
+  <rect x="990" y="120" width="140" height="70" fill="url(#sat)" rx="6" filter="url(#shadow)"/>
+  <text x="1060" y="148" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">🗺️ OSM</text>
+  <text x="1060" y="168" text-anchor="middle" fill="#e3f2fd" font-size="11">Land Use Data</text>
+
+  <!-- Arrow -->
+  <line x1="600" y1="210" x2="600" y2="240" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Layer 2: Processing Engine -->
+  <rect x="50" y="240" width="1100" height="130" fill="#e8f5e9" rx="8" stroke="#34a853" stroke-width="1"/>
+  <text x="70" y="265" fill="#1b5e20" font-size="14" font-weight="bold">PROCESSING ENGINE</text>
+
+  <rect x="70" y="280" width="160" height="70" fill="url(#proc)" rx="6" filter="url(#shadow)"/>
+  <text x="150" y="308" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Cloud Masking</text>
+  <text x="150" y="328" text-anchor="middle" fill="#e8f5e9" font-size="10">Fmask + QA Band</text>
+
+  <rect x="250" y="280" width="160" height="70" fill="url(#proc)" rx="6" filter="url(#shadow)"/>
+  <text x="330" y="308" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Atmospheric Corr.</text>
+  <text x="330" y="328" text-anchor="middle" fill="#e8f5e9" font-size="10">DOS1 / 6S / Sen2Cor</text>
+
+  <rect x="430" y="280" width="160" height="70" fill="url(#proc)" rx="6" filter="url(#shadow)"/>
+  <text x="510" y="308" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Spectral Indices</text>
+  <text x="510" y="328" text-anchor="middle" fill="#e8f5e9" font-size="10">NDVI, NDWI, NDBI, NBRI, UI, BSI</text>
+
+  <rect x="610" y="280" width="160" height="70" fill="url(#proc)" rx="6" filter="url(#shadow)"/>
+  <text x="690" y="308" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">LST Retrieval</text>
+  <text x="690" y="328" text-anchor="middle" fill="#e8f5e9" font-size="10">Split-Window + Mono-Window</text>
+
+  <rect x="790" y="280" width="160" height="70" fill="url(#proc)" rx="6" filter="url(#shadow)"/>
+  <text x="870" y="308" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Feature Engineering</text>
+  <text x="870" y="328" text-anchor="middle" fill="#e8f5e9" font-size="10">17 GeoFeatures</text>
+
+  <rect x="970" y="280" width="160" height="70" fill="url(#proc)" rx="6" filter="url(#shadow)"/>
+  <text x="1050" y="308" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">UHI Detection</text>
+  <text x="1050" y="328" text-anchor="middle" fill="#e8f5e9" font-size="10">Hotspot + Severity</text>
+
+  <!-- Arrow -->
+  <line x1="600" y1="370" x2="600" y2="400" stroke="#64748b" stroke-width="2"/>
+
+  <!-- Layer 3: AI Engine -->
+  <rect x="50" y="400" width="1100" height="130" fill="#fce4ec" rx="8" stroke="#ea4335" stroke-width="1"/>
+  <text x="70" y="425" fill="#b71c1c" font-size="14" font-weight="bold">AI / ML ENGINE</text>
+
+  <rect x="70" y="440" width="160" height="70" fill="url(#ml)" rx="6" filter="url(#shadow)"/>
+  <text x="150" y="468" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">ML Training</text>
+  <text x="150" y="488" text-anchor="middle" fill="#fce4ec" font-size="10">8 Model Types + Ensemble</text>
+
+  <rect x="250" y="440" width="160" height="70" fill="url(#ml)" rx="6" filter="url(#shadow)"/>
+  <text x="330" y="468" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Hyperparameter Opt.</text>
+  <text x="330" y="488" text-anchor="middle" fill="#fce4ec" font-size="10">Grid / Random / Optuna</text>
+
+  <rect x="430" y="440" width="160" height="70" fill="url(#ml)" rx="6" filter="url(#shadow)"/>
+  <text x="510" y="468" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Cross-Validation</text>
+  <text x="510" y="488" text-anchor="middle" fill="#fce4ec" font-size="10">K-Fold / Spatial / Temporal</text>
+
+  <rect x="610" y="440" width="160" height="70" fill="url(#ml)" rx="6" filter="url(#shadow)"/>
+  <text x="690" y="468" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Drift Detection</text>
+  <text x="690" y="488" text-anchor="middle" fill="#fce4ec" font-size="10">Data + Concept + Model</text>
+
+  <rect x="790" y="440" width="160" height="70" fill="url(#ml)" rx="6" filter="url(#shadow)"/>
+  <text x="870" y="468" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">XAI (SHAP)</text>
+  <text x="870" y="488" text-anchor="middle" fill="#fce4ec" font-size="10">TreeExplainer + CF</text>
+
+  <rect x="970" y="440" width="160" height="70" fill="url(#ml)" rx="6" filter="url(#shadow)"/>
+  <text x="1050" y="468" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Forecasting</text>
+  <text x="1050" y="488" text-anchor="middle" fill="#fce4ec" font-size="10">LST Prediction + Trends</text>
+
+  <!-- Arrow -->
+  <line x1="600" y1="530" x2="600" y2="560" stroke="#64748b" stroke-width="2"/>
+
+  <!-- Layer 4: Decision Engine -->
+  <rect x="50" y="560" width="1100" height="130" fill="#fff8e1" rx="8" stroke="#fbbc04" stroke-width="1"/>
+  <text x="70" y="585" fill="#f57f17" font-size="14" font-weight="bold">DECISION ENGINE</text>
+
+  <rect x="70" y="600" width="250" height="70" fill="url(#rec)" rx="6" filter="url(#shadow)"/>
+  <text x="195" y="628" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Recommendation Engine</text>
+  <text x="195" y="648" text-anchor="middle" fill="#fff8e1" font-size="10">6 Mitigation Strategies + Knapsack Optimization</text>
+
+  <rect x="350" y="600" width="250" height="70" fill="url(#rec)" rx="6" filter="url(#shadow)"/>
+  <text x="475" y="628" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Scenario Simulation</text>
+  <text x="475" y="648" text-anchor="middle" fill="#fff8e1" font-size="10">7 Templates + Monte Carlo</text>
+
+  <rect x="630" y="600" width="250" height="70" fill="url(#rec)" rx="6" filter="url(#shadow)"/>
+  <text x="755" y="628" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Cost-Benefit Analysis</text>
+  <text x="755" y="648" text-anchor="middle" fill="#fff8e1" font-size="10">PV Carbon Benefit + ROI</text>
+
+  <rect x="910" y="600" width="220" height="70" fill="url(#rec)" rx="6" filter="url(#shadow)"/>
+  <text x="1020" y="628" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Report Generation</text>
+  <text x="1020" y="648" text-anchor="middle" fill="#fff8e1" font-size="10">PDF / CSV / GeoJSON</text>
+
+  <!-- Arrow -->
+  <line x1="600" y1="690" x2="600" y2="720" stroke="#64748b" stroke-width="2"/>
+
+  <!-- Layer 5: Frontend -->
+  <rect x="50" y="720" width="1100" height="80" fill="#ecfdf5" rx="8" stroke="#059669" stroke-width="1"/>
+  <text x="70" y="743" fill="#065f46" font-size="14" font-weight="bold">DASHBOARD (React 19 + TypeScript + Vite)</text>
+
+  <rect x="70" y="755" width="160" height="35" fill="url(#front)" rx="4" filter="url(#shadow)"/>
+  <text x="150" y="778" text-anchor="middle" fill="#fff" font-size="11">MapLibre GL Maps</text>
+
+  <rect x="250" y="755" width="160" height="35" fill="url(#front)" rx="4" filter="url(#shadow)"/>
+  <text x="330" y="778" text-anchor="middle" fill="#fff" font-size="11">ECharts Visualizations</text>
+
+  <rect x="430" y="755" width="160" height="35" fill="url(#front)" rx="4" filter="url(#shadow)"/>
+  <text x="510" y="778" text-anchor="middle" fill="#fff" font-size="11">11 Interactive Pages</text>
+
+  <rect x="610" y="755" width="160" height="35" fill="url(#front)" rx="4" filter="url(#shadow)"/>
+  <text x="690" y="778" text-anchor="middle" fill="#fff" font-size="11">TanStack Query</text>
+
+  <rect x="790" y="755" width="160" height="35" fill="url(#front)" rx="4" filter="url(#shadow)"/>
+  <text x="870" y="778" text-anchor="middle" fill="#fff" font-size="11">Dark Mode</text>
+
+  <rect x="970" y="755" width="160" height="35" fill="url(#front)" rx="4" filter="url(#shadow)"/>
+  <text x="1050" y="778" text-anchor="middle" fill="#fff" font-size="11">Export Reports</text>
+
+  <!-- Infrastructure bar -->
+  <rect x="50" y="820" width="1100" height="60" fill="#0f172a" rx="8"/>
+  <text x="600" y="842" text-anchor="middle" fill="#94a3b8" font-size="12" font-weight="bold">INFRASTRUCTURE</text>
+  <text x="600" y="862" text-anchor="middle" fill="#64748b" font-size="11">Docker • Nginx • PostgreSQL/PostGIS • Redis • Celery • Prometheus • Grafana • Loki • OpenTelemetry</text>
+
+  <!-- Legend -->
+  <rect x="50" y="895" width="1100" height="25" rx="4"/>
+</svg>

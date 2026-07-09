@@ -1,0 +1,20 @@
+# =============================================================================
+# Urban Heat Mitigation Platform - Frontend Dockerfile (Development)
+# Vite dev server with HMR
+# =============================================================================
+
+FROM node:20-alpine
+
+ENV NODE_ENV=development
+
+WORKDIR /app
+
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD wget --spider http://localhost:5173/ || exit 1
+
+EXPOSE 5173
+
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

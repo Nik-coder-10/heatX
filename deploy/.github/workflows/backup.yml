@@ -1,0 +1,127 @@
+# =============================================================================
+# Urban Heat Mitigation Platform - Automated Database Backup Pipeline
+# Runs daily, syncs to cloud storage, and manages retention
+# =============================================================================
+
+name: Database Backup
+
+on:
+  schedule:
+    - cron: "0 2 * * *" # Every day at 2 AM
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Reason for manual backup"
+        required: false
+        default: "Manual trigger"
+
+env:
+  BACKUP_RETENTION_DAYS: 30
+
+jobs:
+  backup:
+    name: Create Database Backup
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          known_hosts: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+
+      - name: Create backup
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
+            cd /opt/urbanheat
+            BACKUP_DIR="/backups/postgres"
+            mkdir -p "$BACKUP_DIR"
+
+            DATE_TAG=$(date +%Y%m%d_%H%M%S)
+            BACKUP_FILE="${BACKUP_DIR}/urbanheat_${DATE_TAG}.dump.gz"
+
+            # Run pg_dump inside the postgres container
+            docker exec urbanheat-postgres pg_dump \
+              -U ${{ secrets.POSTGRES_USER }} \
+              -d ${{ secrets.POSTGRES_DB }} \
+              --format=custom \
+              --no-owner \
+              --no-acl \
+            | gzip -9 > "$BACKUP_FILE"
+
+            echo "Backup created: $BACKUP_FILE ($(du -h "$BACKUP_FILE" | cut -f1))"
+
+            # Cleanup old backups
+            find "$BACKUP_DIR" -name "urbanheat_*.dump.gz" -type f -mtime +${{ env.BACKUP_RETENTION_DAYS }} -delete
+            echo "Cleanup complete"
+
+            # List recent backups
+            echo ""
+            echo "Recent backups:"
+            ls -lh "$BACKUP_DIR" | tail -10
+          EOF
+
+  verify:
+    name: Verify Backup Integrity
+    needs: backup
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          known_hosts: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+
+      - name: Verify latest backup
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
+            BACKUP_DIR="/backups/postgres"
+            LATEST=$(ls -t "$BACKUP_DIR"/urbanheat_*.dump.gz 2>/dev/null | head -1)
+
+            if [ -z "$LATEST" ]; then
+              echo "ERROR: No backup found"
+              exit 1
+            fi
+
+            echo "Verifying: $LATEST"
+
+            # Check gzip integrity
+            if gzip -t "$LATEST"; then
+              echo "SUCCESS: Backup integrity verified"
+              echo "Size: $(du -h "$LATEST" | cut -f1)"
+            else
+              echo "ERROR: Backup integrity check failed"
+              exit 1
+            fi
+          EOF
+
+  notify:
+    name: Notify
+    needs: [backup, verify]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send notification
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "${{ job.status == 'success' && '✅' || '❌' }} Database Backup ${{ job.status }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ job.status == 'success' && '✅ Database backup completed' || '❌ Database backup failed' }}\n*Environment:* Production\n*Workflow:* ${{ github.workflow }}\n*Run:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BACKUP_WEBHOOK }}
+        continue-on-error: true

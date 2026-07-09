@@ -1,0 +1,147 @@
+﻿# GitHub Labels Configuration — Urban Heat Mitigation Platform
+# Auto-generated via .github/labels.yml
+# Install with: gh label clone your-org/urban-heat-platform --force
+
+# --- Type Labels ---
+- name: bug
+  color: '#d73a4a'
+  description: Something is not working as expected
+- name: enhancement
+  color: '#a2eeef'
+  description: New feature or improvement request
+- name: documentation
+  color: '#0075ca'
+  description: Improvements or additions to documentation
+- name: test
+  color: '#c5def5'
+  description: Testing-related issues or PRs
+- name: refactor
+  color: '#fbca04'
+  description: Code restructuring without functional changes
+- name: performance
+  color: '#0e8a16'
+  description: Performance improvement
+- name: security
+  color: '#b60205'
+  description: Security vulnerability or hardening
+
+# --- Component Labels ---
+- name: component:acquisition
+  color: '#5319e7'
+  description: Satellite data acquisition (STAC, Bhuvan)
+- name: component:spectral
+  color: '#5319e7'
+  description: Spectral indices computation
+- name: component:lst
+  color: '#5319e7'
+  description: Land Surface Temperature retrieval
+- name: component:uhi
+  color: '#5319e7'
+  description: UHI detection and analysis
+- name: component:ml
+  color: '#5319e7'
+  description: ML prediction engine
+- name: component:xai
+  color: '#5319e7'
+  description: XAI / SHAP explainability
+- name: component:recommendation
+  color: '#5319e7'
+  description: Recommendation and optimization engine
+- name: component:simulation
+  color: '#5319e7'
+  description: Scenario simulation
+- name: component:frontend
+  color: '#5319e7'
+  description: React dashboard and UI
+- name: component:map
+  color: '#5319e7'
+  description: MapLibre GL map visualization
+- name: component:api
+  color: '#5319e7'
+  description: FastAPI backend routes
+- name: component:database
+  color: '#5319e7'
+  description: PostgreSQL / PostGIS / database layer
+- name: component:deployment
+  color: '#5319e7'
+  description: Docker, Nginx, CI/CD
+- name: component:monitoring
+  color: '#5319e7'
+  description: Prometheus, Grafana, Loki, OpenTelemetry
+
+# --- Priority Labels ---
+- name: priority:critical
+  color: '#b60205'
+  description: Blocking release or causing data loss
+- name: priority:high
+  color: '#d93f0b'
+  description: Important feature or significant bug
+- name: priority:medium
+  color: '#fbca04'
+  description: Standard priority
+- name: priority:low
+  color: '#0e8a16'
+  description: Nice-to-have, no immediate urgency
+
+# --- Status Labels ---
+- name: status:needs-triage
+  color: '#e4e669'
+  description: Issue needs initial review
+- name: status:needs-repro
+  color: '#e4e669'
+  description: Needs reproduction steps or confirmation
+- name: status:needs-design
+  color: '#e4e669'
+  description: Needs architectural or UI design review
+- name: status:blocked
+  color: '#b60205'
+  description: Blocked by another issue or dependency
+- name: status:in-progress
+  color: '#fbca04'
+  description: Actively being worked on
+- name: status:review-needed
+  color: '#fbca04'
+  description: Code review requested
+- name: status:changes-requested
+  color: '#d73a4a'
+  description: Changes requested by reviewer
+- name: status:good-first-issue
+  color: '#7057ff'
+  description: Good for new contributors
+- name: status:help-wanted
+  color: '#008672'
+  description: Extra attention needed from contributors
+
+# --- Data / Domain Labels ---
+- name: data:landsat
+  color: '#bfdadc'
+  description: Landsat 8/9 satellite data
+- name: data:sentinel
+  color: '#bfdadc'
+  description: Sentinel-2 / Sentinel-5P satellite data
+- name: data:bhuvan
+  color: '#bfdadc'
+  description: ISRO Bhuvan satellite data
+- name: data:validation
+  color: '#bfdadc'
+  description: Data validation and ground truth
+
+# --- Special Labels ---
+- name: breaking-change
+  color: '#b60205'
+  description: Introduces breaking API or schema changes
+- name: dependabot
+  color: '#0366d6'
+  description: Automated dependency updates
+- name: duplicate
+  color: '#cfd3d7'
+  description: Duplicate of another issue
+- name: invalid
+  color: '#e4e669'
+  description: Not a valid issue or PR
+- name: question
+  color: '#d876e3'
+  description: Question or support request
+- name: wontfix
+  color: '#ffffff'
+  description: Decision not to address this issue

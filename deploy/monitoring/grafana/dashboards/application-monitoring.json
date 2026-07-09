@@ -1,0 +1,73 @@
+{
+  "title": "Application Monitoring",
+  "version": 1,
+  "uid": "application-monitoring",
+  "panels": [
+    {
+      "title": "UHI Detection Requests",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 0},
+      "targets": [{"expr": "sum(rate(uhi_detection_requests_total[5m]))"}]
+    },
+    {
+      "title": "ML Inference Rate",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 0},
+      "targets": [{
+        "expr": "sum(rate(model_inference_requests_total[5m])) by (model_name)",
+        "legendFormat": "{{ model_name }}"
+      }]
+    },
+    {
+      "title": "Model Accuracy Score",
+      "type": "stat",
+      "gridPos": {"h": 8, "w": 4, "x": 16, "y": 0},
+      "targets": [{"expr": "avg(model_accuracy_score)"}]
+    },
+    {
+      "title": "Prediction Confidence",
+      "type": "gauge",
+      "gridPos": {"h": 8, "w": 4, "x": 20, "y": 0},
+      "targets": [{"expr": "avg(model_prediction_confidence)"}]
+    },
+    {
+      "title": "Recommendations Generated",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 8},
+      "targets": [{"expr": "sum(rate(recommendations_generated_total[5m]))"}]
+    },
+    {
+      "title": "Scenario Simulations",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 8},
+      "targets": [{"expr": "sum(rate(scenario_simulations_total[5m]))"}]
+    },
+    {
+      "title": "Dataset Size (satellite images)",
+      "type": "stat",
+      "gridPos": {"h": 8, "w": 4, "x": 16, "y": 8},
+      "targets": [{"expr": "sum(satellite_images_total)"}]
+    },
+    {
+      "title": "Active Users",
+      "type": "stat",
+      "gridPos": {"h": 8, "w": 4, "x": 20, "y": 8},
+      "targets": [{"expr": "sum(active_users_total)"}]
+    },
+    {
+      "title": "Model Drift Scores",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+      "targets": [{
+        "expr": "model_drift_score",
+        "legendFormat": "{{ model_name }}"
+      }]
+    },
+    {
+      "title": "Spectral Index Processing",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+      "targets": [{"expr": "sum(rate(spectral_index_processing_seconds_sum[5m]))"}]
+    }
+  ]
+}

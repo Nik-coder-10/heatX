@@ -1,0 +1,150 @@
+# =============================================================================
+# Urban Heat Mitigation Platform - Security Scanning Pipeline
+# Runs weekly and on every PR for security-critical paths
+# =============================================================================
+
+name: Security Scan
+
+on:
+  schedule:
+    - cron: "0 6 * * 0" # Every Sunday at 6 AM
+  push:
+    paths:
+      - "requirements.txt"
+      - "frontend/package.json"
+      - "frontend/package-lock.json"
+      - "Dockerfile*"
+      - "docker-compose*.yml"
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  # ===== Secret Scanning =====
+  secrets:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: TruffleHog scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
+
+  # ===== Dependency Scanning =====
+  dependencies:
+    name: Dependency Scan
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        language: [python, javascript]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python deps scan
+        if: matrix.language == 'python'
+        run: |
+          pip install pip-audit safety
+          pip-audit -r requirements.txt
+          safety check -r requirements.txt
+
+      - name: Node deps scan
+        if: matrix.language == 'javascript'
+        run: |
+          npm audit --production
+          npx audit-ci --config
+        working-directory: frontend
+
+  # ===== Container Scanning =====
+  containers:
+    name: Container Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build images for scanning
+        run: |
+          docker build -f deploy/docker/backend/Dockerfile -t urbanheat-backend:scan .
+          docker build -f deploy/docker/frontend/Dockerfile -t urbanheat-frontend:scan .
+          docker build -f deploy/docker/worker/Dockerfile -t urbanheat-worker:scan .
+
+      - name: Scan backend image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: urbanheat-backend:scan
+          format: sarif
+          output: trivy-backend.sarif
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+
+      - name: Scan frontend image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: urbanheat-frontend:scan
+          format: sarif
+          output: trivy-frontend.sarif
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+
+      - name: Scan worker image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: urbanheat-worker:scan
+          format: sarif
+          output: trivy-worker.sarif
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+
+      - name: Upload scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: .
+          category: container-scans
+
+  # ===== CodeQL =====
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ["python", "javascript"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-and-quality
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
+
+  # ===== Dependency Graph (Dependabot) =====
+  dependabot:
+    name: Dependency Graph
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Submit dependency graph
+        uses: github/dependency-submission-action@v4
+        with:
+          files: |
+            requirements.txt
+            frontend/package.json

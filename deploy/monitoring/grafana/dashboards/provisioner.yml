@@ -1,0 +1,17 @@
+# =============================================================================
+# Grafana Dashboard Provisioner
+# =============================================================================
+
+apiVersion: 1
+
+providers:
+  - name: "UrbanHeat Dashboards"
+    orgId: 1
+    folder: "Urban Heat Platform"
+    type: file
+    disableDeletion: true
+    updateIntervalSeconds: 30
+    allowUiUpdates: false
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: false

@@ -1,0 +1,158 @@
+# =============================================================================
+# Urban Heat Mitigation Platform - Prometheus Alerting Rules
+# =============================================================================
+
+groups:
+  - name: urbanheat_alerts
+    interval: 30s
+    rules:
+      # ===== Service Availability =====
+      - alert: BackendDown
+        expr: up{job="backend"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "Backend service is down"
+          description: "Backend {{ $labels.instance }} has been unreachable for >30s"
+
+      - alert: FrontendDown
+        expr: up{job="frontend"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          team: frontend
+        annotations:
+          summary: "Frontend service is down"
+
+      - alert: DatabaseDown
+        expr: up{job="postgres"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "PostgreSQL database is down"
+
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "Redis is down"
+
+      - alert: WorkerDown
+        expr: up{job="celery"} == 0
+        for: 60s
+        labels:
+          severity: high
+          team: backend
+        annotations:
+          summary: "Celery worker is down"
+
+      # ===== Performance =====
+      - alert: HighAPIErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: high
+          team: backend
+        annotations:
+          summary: "High API error rate ({{ $value | humanizePercentage }})"
+          description: "API 5xx error rate is {{ $value | humanizePercentage }} for the last 5 minutes"
+
+      - alert: HighAPILatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "High API latency (p95: {{ $value }}s)"
+
+      - alert: SlowQuery
+        expr: rate(pg_stat_activity_max_timestamp_age_seconds[5m]) > 30
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "Slow database queries detected"
+
+      - alert: HighMemoryUsage
+        expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Container {{ $labels.container }} memory usage > 90%"
+
+      - alert: HighCPUUsage
+        expr: rate(container_cpu_usage_seconds_total[5m]) / container_spec_cpu_quota * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Container {{ $labels.container }} CPU usage > 85%"
+
+      # ===== Disk & Storage =====
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) < 0.1
+        for: 5m
+        labels:
+          severity: high
+          team: platform
+        annotations:
+          summary: "Disk space < 10% on {{ $labels.instance }}"
+
+      - alert: DatabaseSizeGrowing
+        expr: pg_database_size_bytes > 1e10
+        for: 1h
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "Database size > 10GB ({{ $value | humanize1024 }})"
+
+      # ===== ML Model =====
+      - alert: ModelDriftDetected
+        expr: model_drift_score > 0.1
+        for: 5m
+        labels:
+          severity: high
+          team: ml
+        annotations:
+          summary: "ML model drift detected (score: {{ $value }})"
+
+      - alert: ModelInferenceErrors
+        expr: rate(model_inference_errors_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          team: ml
+        annotations:
+          summary: "ML model inference errors detected"
+
+      # ===== Security =====
+      - alert: FailedLogins
+        expr: rate(failed_login_attempts_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: high
+          team: security
+        annotations:
+          summary: "High rate of failed login attempts"
+
+      - alert: RateLimitExceeded
+        expr: rate(nginx_http_requests_limited_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          team: security
+        annotations:
+          summary: "Rate limits being triggered"

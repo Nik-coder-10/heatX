@@ -1,0 +1,409 @@
+# =============================================================================
+# Urban Heat Mitigation Platform - Production Docker Compose
+# Single command: docker compose -f deploy/docker-compose.prod.yml up -d
+# HTTPS: docker compose -f deploy/docker-compose.prod.yml -f deploy/docker-compose.https.yml up -d
+# =============================================================================
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-restart: &restart-policy
+  restart: unless-stopped
+
+x-healthcheck: &db-healthcheck
+  test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+  interval: 10s
+  timeout: 5s
+  retries: 5
+  start_period: 30s
+
+x-backend-env: &backend-env
+  POSTGRES_SERVER: postgres
+  POSTGRES_USER: ${POSTGRES_USER}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  POSTGRES_DB: ${POSTGRES_DB}
+  POSTGRES_PORT: 5432
+  SECRET_KEY: ${SECRET_KEY}
+  ALGORITHM: HS256
+  ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
+  MINIO_ENDPOINT: minio:9000
+  MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+  MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+  MINIO_BUCKET: ${MINIO_BUCKET:-urbanheat-data}
+  BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
+  FRONTEND_HOST: ${FRONTEND_URL}
+  API_V1_STR: /api/v1
+  ENVIRONMENT: production
+  SMTP_TLS: ${SMTP_TLS:-True}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_USER: ${SMTP_USER:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL:-noreply@urbanheat.io}
+  EMAILS_FROM_NAME: ${EMAILS_FROM_NAME:-Urban Heat Platform}
+  CELERY_BROKER_URL: redis://redis:6379/0
+  CELERY_RESULT_BACKEND: redis://redis:6379/0
+  SENTRY_DSN: ${SENTRY_DSN:-}
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+  OTEL_SERVICE_NAME: urbanheat-backend
+
+services:
+  # ===================== DATABASE =====================
+  postgres:
+    image: postgis/postgis:15-3.3
+    container_name: urbanheat-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --locale=en_US.UTF-8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init-postgis.sql:/docker-entrypoint-initdb.d/01-init-postgis.sql:ro
+    ports:
+      - target: 5432
+        published: ${POSTGRES_PORT:-5432}
+        protocol: tcp
+    healthcheck: *db-healthcheck
+    logging: *default-logging
+    <<: *restart-policy
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "2"
+        reservations:
+          memory: 1G
+          cpus: "1"
+
+  # ===================== REDIS =====================
+  redis:
+    image: redis:7-alpine
+    container_name: urbanheat-redis
+    command: [
+      "redis-server",
+      "--save", "60", "1",
+      "--loglevel", "notice",
+      "--maxmemory", "512mb",
+      "--maxmemory-policy", "allkeys-lru",
+      "--requirepass", "${REDIS_PASSWORD:-}",
+    ]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-}", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    logging: *default-logging
+    <<: *restart-policy
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+
+  # ===================== MINIO (Object Storage) =====================
+  minio:
+    image: minio/minio:latest
+    container_name: urbanheat-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging: *default-logging
+    <<: *restart-policy
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "1"
+
+  # ===================== BACKEND (FastAPI + Gunicorn) =====================
+  backend:
+    build:
+      context: .
+      dockerfile: deploy/docker/backend/Dockerfile
+    image: urbanheat-backend:${APP_VERSION:-latest}
+    container_name: urbanheat-backend
+    environment: *backend-env
+    volumes:
+      - model_data:/app/models
+      - upload_data:/app/uploads
+      - satellite_data:/app/data/satellite
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    logging: *default-logging
+    <<: *restart-policy
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "4"
+        reservations:
+          memory: 2G
+          cpus: "2"
+    expose:
+      - "8000"
+
+  # ===================== CELERY WORKER =====================
+  worker:
+    build:
+      context: .
+      dockerfile: deploy/docker/worker/Dockerfile
+    image: urbanheat-worker:${APP_VERSION:-latest}
+    container_name: urbanheat-worker
+    environment:
+      <<: *backend-env
+      CELERY_WORKER_CONCURRENCY: ${CELERY_WORKER_CONCURRENCY:-4}
+    volumes:
+      - model_data:/app/models
+      - upload_data:/app/uploads
+      - satellite_data:/app/data/satellite
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    logging: *default-logging
+    <<: *restart-policy
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "4"
+        reservations:
+          memory: 2G
+          cpus: "2"
+
+  # ===================== CELERY BEAT (Scheduler) =====================
+  beat:
+    image: urbanheat-worker:${APP_VERSION:-latest}
+    container_name: urbanheat-beat
+    environment: *backend-env
+    command: celery -A app.celery_worker beat --loglevel=info
+    depends_on:
+      - redis
+      - worker
+    logging: *default-logging
+    <<: *restart-policy
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.25"
+
+  # ===================== FRONTEND =====================
+  frontend:
+    build:
+      context: .
+      dockerfile: deploy/docker/frontend/Dockerfile
+    image: urbanheat-frontend:${APP_VERSION:-latest}
+    container_name: urbanheat-frontend
+    environment:
+      VITE_BACKEND_URL: ${BACKEND_URL:-https://api.urbanheat.io}
+    depends_on:
+      - backend
+    logging: *default-logging
+    <<: *restart-policy
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.25"
+    expose:
+      - "80"
+
+  # ===================== NGINX REVERSE PROXY =====================
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: urbanheat-nginx
+    volumes:
+      - ./deploy/nginx/nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./deploy/nginx/security-headers.conf:/etc/nginx/security-headers.conf:ro
+      - ./deploy/nginx/rate-limit.conf:/etc/nginx/rate-limit.conf:ro
+      - ./deploy/nginx/compression.conf:/etc/nginx/compression.conf:ro
+      - static_cache:/var/cache/nginx
+      - certbot_data:/etc/letsencrypt:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+      - frontend
+    logging: *default-logging
+    <<: *restart-policy
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  # ===================== PROMETHEUS =====================
+  prometheus:
+    image: prom/prometheus:v2.50.0
+    container_name: urbanheat-prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+      - "--web.enable-lifecycle"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - ./monitoring/prometheus/recording-rules.yml:/etc/prometheus/recording-rules.yml:ro
+      - prometheus_data:/prometheus
+    depends_on:
+      - backend
+    logging: *default-logging
+    <<: *restart-policy
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "0.5"
+    expose:
+      - "9090"
+
+  # ===================== GRAFANA =====================
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: urbanheat-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SERVER_ROOT_URL: https://${DOMAIN:-localhost}/grafana/
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+    volumes:
+      - ./monitoring/grafana/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - loki
+    logging: *default-logging
+    <<: *restart-policy
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+    expose:
+      - "3000"
+
+  # ===================== LOKI (Log Aggregation) =====================
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: urbanheat-loki
+    command: -config.file=/etc/loki/loki.yml
+    volumes:
+      - ./monitoring/loki/loki.yml:/etc/loki/loki.yml:ro
+      - loki_data:/loki
+    logging: *default-logging
+    <<: *restart-policy
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "0.5"
+    expose:
+      - "3100"
+
+  # ===================== PROMTAIL (Log Shipper) =====================
+  promtail:
+    image: grafana/promtail:3.0.0
+    container_name: urbanheat-promtail
+    command: -config.file=/etc/promtail/promtail.yml
+    volumes:
+      - ./monitoring/promtail/promtail.yml:/etc/promtail/promtail.yml:ro
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    depends_on:
+      - loki
+    logging: *default-logging
+    <<: *restart-policy
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.25"
+
+  # ===================== OPENTELEMETRY COLLECTOR =====================
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.96.0
+    container_name: urbanheat-otel
+    command: ["--config=/etc/otel/config.yml"]
+    volumes:
+      - ./monitoring/otel/config.yml:/etc/otel/config.yml:ro
+    depends_on:
+      - loki
+      - prometheus
+    logging: *default-logging
+    <<: *restart-policy
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.25"
+    expose:
+      - "4317"
+      - "4318"
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local
+  model_data:
+    driver: local
+  upload_data:
+    driver: local
+  satellite_data:
+    driver: local
+  static_cache:
+    driver: local
+  certbot_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  loki_data:
+    driver: local
+
+networks:
+  default:
+    name: urbanheat-network
+    driver: bridge

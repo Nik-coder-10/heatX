@@ -1,0 +1,65 @@
+{
+  "title": "ML Model Monitoring",
+  "version": 1,
+  "uid": "ml-monitoring",
+  "panels": [
+    {
+      "title": "Model Accuracy Over Time",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "targets": [{
+        "expr": "model_accuracy_score",
+        "legendFormat": "{{ model_name }} (v{{ model_version }})"
+      }]
+    },
+    {
+      "title": "Model Drift Score",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "targets": [{
+        "expr": "model_drift_score",
+        "legendFormat": "{{ model_name }}"
+      }]
+    },
+    {
+      "title": "Feature Importance",
+      "type": "barchart",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "targets": [{"expr": "topk(10, model_feature_importance)"}]
+    },
+    {
+      "title": "Prediction Distribution",
+      "type": "heatmap",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "targets": [{"expr": "model_prediction_bucket"}]
+    },
+    {
+      "title": "Model Inference Latency (P50/P95/P99)",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 16},
+      "targets": [
+        {"expr": "histogram_quantile(0.50, rate(model_inference_duration_seconds_bucket[5m]))", "legendFormat": "P50"},
+        {"expr": "histogram_quantile(0.95, rate(model_inference_duration_seconds_bucket[5m]))", "legendFormat": "P95"},
+        {"expr": "histogram_quantile(0.99, rate(model_inference_duration_seconds_bucket[5m]))", "legendFormat": "P99"}
+      ]
+    },
+    {
+      "title": "Model Retrain Events",
+      "type": "stat",
+      "gridPos": {"h": 8, "w": 4, "x": 8, "y": 16},
+      "targets": [{"expr": "sum(model_retrain_events_total)"}]
+    },
+    {
+      "title": "XAI Explanations Generated",
+      "type": "stat",
+      "gridPos": {"h": 8, "w": 4, "x": 12, "y": 16},
+      "targets": [{"expr": "sum(xai_explanations_total)"}]
+    },
+    {
+      "title": "Model Performance by Type",
+      "type": "table",
+      "gridPos": {"h": 8, "w": 12, "x": 16, "y": 16},
+      "targets": [{"expr": "model_performance_metrics"}]
+    }
+  ]
+}

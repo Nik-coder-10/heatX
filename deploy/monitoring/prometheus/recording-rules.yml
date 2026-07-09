@@ -1,0 +1,48 @@
+# =============================================================================
+# Urban Heat Mitigation Platform - Prometheus Recording Rules
+# =============================================================================
+
+groups:
+  - name: urbanheat_recording_rules
+    interval: 60s
+    rules:
+      # API
+      - record: job:http_requests_total:rate5m
+        expr: sum(rate(http_requests_total[5m])) by (job, method, endpoint)
+
+      - record: job:http_request_errors:rate5m
+        expr: sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
+
+      - record: instance:http_request_duration_p50
+        expr: histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, instance))
+
+      - record: instance:http_request_duration_p95
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, instance))
+
+      - record: instance:http_request_duration_p99
+        expr: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, instance))
+
+      # Database
+      - record: job:pg_connections:total
+        expr: sum(pg_stat_activity_count) by (job, state)
+
+      - record: job:pg_transactions:rate5m
+        expr: rate(pg_stat_database_xact_commit[5m]) + rate(pg_stat_database_xact_rollback[5m])
+
+      # Cache
+      - record: job:redis_cache_hit_ratio
+        expr: rate(redis_keyspace_hits_total[5m]) / (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))
+
+      # ML
+      - record: job:model_inference:rate5m
+        expr: sum(rate(model_inference_requests_total[5m])) by (model_name, model_version)
+
+      - record: job:model_accuracy:avg
+        expr: avg(model_accuracy_score) by (model_name)
+
+      # System
+      - record: instance:container_memory_usage:percent
+        expr: container_memory_usage_bytes / container_spec_memory_limit_bytes * 100
+
+      - record: instance:container_cpu_usage:percent
+        expr: rate(container_cpu_usage_seconds_total[5m]) / container_spec_cpu_quota * 100

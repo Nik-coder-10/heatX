@@ -1,0 +1,135 @@
+# =============================================================================
+# Urban Heat Mitigation Platform - OpenTelemetry Collector Configuration
+# =============================================================================
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+          cors:
+            allowed_origins:
+              - "http://*"
+              - "https://*"
+
+  # Collect host metrics
+  hostmetrics:
+    collection_interval: 30s
+    scrapers:
+      cpu:
+      disk:
+      load:
+      filesystem:
+      memory:
+      network:
+      paging:
+      processes:
+
+  # Collect Docker metrics
+  docker_stats:
+    endpoint: unix:///var/run/docker.sock
+    collection_interval: 15s
+
+  # Prometheus receiver for scraping
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: "otel-collector"
+          scrape_interval: 15s
+          static_configs:
+            - targets: ["localhost:8888"]
+
+processors:
+  batch:
+    timeout: 5s
+    send_batch_size: 10000
+    send_batch_max_size: 20000
+
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+
+  attributes:
+    actions:
+      - key: environment
+        value: production
+        action: insert
+      - key: project
+        value: urbanheat
+        action: insert
+
+  resourcedetection:
+    detectors: [docker, env, system]
+    override: false
+
+  filter:
+    error_mode: ignore
+    traces:
+      span:
+        - 'attributes["http.method"] == "OPTIONS"'
+    metrics:
+      metric:
+        - 'IsMatch(name, "otelcol_.*")'
+
+  k8sattributes:
+    passthrough: false
+
+exporters:
+  # Console logging (debug)
+  logging:
+    loglevel: info
+
+  # Prometheus metrics
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    resource_to_telemetry_conversion:
+      enabled: true
+
+  # Loki logs
+  loki:
+    endpoint: http://loki:3100/loki/api/v1/push
+    tls:
+      insecure: true
+    format: json
+    default_labels_enabled:
+      - container
+      - service
+      - environment
+      - project
+
+  # OTLP (for tracing if a backend is configured)
+  otlp:
+    endpoint: "${OTLP_ENDPOINT:-}"
+    tls:
+      insecure: true
+    sending_queue:
+      num_consumers: 10
+      queue_size: 1000
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_interval: 30s
+      max_elapsed_time: 300s
+
+service:
+  pipelines:
+    # Metrics pipeline
+    metrics:
+      receivers: [otlp, hostmetrics, docker_stats, prometheus]
+      processors: [memory_limiter, batch, attributes, resourcedetection]
+      exporters: [prometheus, logging]
+
+    # Logs pipeline
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, attributes, resourcedetection, filter]
+      exporters: [loki, logging]
+
+    # Traces pipeline (if tracing backend is configured)
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, attributes, resourcedetection]
+      exporters: [otlp, logging]

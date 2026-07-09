@@ -1,0 +1,70 @@
+# =============================================================================
+# Urban Heat Mitigation Platform - .dockerignore
+# =============================================================================
+
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+*.egg-info
+dist
+build
+*.whl
+.tox
+.coverage
+coverage.xml
+htmlcov
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.env
+
+# Node
+node_modules
+frontend/node_modules
+frontend/dist
+frontend/build
+
+# Docker
+.dockerignore
+docker-compose*.yml
+
+# Logs
+*.log
+logs/
+/logs/
+
+# Data
+data/
+/data/
+backups/
+/backups/
+
+# Documentation
+*.md
+docs/
+DESIGN.md
+REPORT.md
+
+# Temp
+tmp
+temp
+*.tmp

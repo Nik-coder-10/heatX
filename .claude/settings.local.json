@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install *)",
+      "Read(//c/app/**)",
+      "Bash(python3 -c \"from app.database.mixins import BaseModel; print\\('Import successful'\\)\")",
+      "Bash(python *)",
+      "Bash(</parameter/database)",
+      "Bash(python3 *)"
+    ]
+  }
+}

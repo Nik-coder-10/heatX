@@ -1,0 +1,204 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --surface-50: 3 7 18;
+  --surface-100: 5 11 24;
+  --surface-200: 7 17 32;
+  --surface-300: 12 24 44;
+  --surface-400: 15 30 50;
+  --surface-500: 20 38 58;
+  --surface-600: 25 45 68;
+  --surface-700: 35 55 80;
+  --surface-800: 55 75 100;
+  --surface-900: 100 120 145;
+  --text-primary: 249 250 251;
+  --text-secondary: 148 163 184;
+  --border: 255 255 255;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-[#030712] text-text-primary font-sans;
+    scroll-behavior: smooth;
+  }
+
+  ::selection { @apply bg-[#00E5A8]/25 text-white; }
+
+  * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.06) transparent; }
+
+  *::-webkit-scrollbar { width: 4px; height: 4px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 99px; }
+}
+
+@layer components {
+  .ambient-bg {
+    @apply fixed inset-0 pointer-events-none overflow-hidden;
+  }
+
+  .ambient-blob {
+    @apply absolute rounded-full blur-[120px] opacity-[0.12];
+    will-change: transform;
+  }
+
+  .ambient-grid {
+    @apply fixed inset-0 pointer-events-none;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .ambient-noise {
+    @apply fixed inset-0 pointer-events-none opacity-[0.015];
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 256px 256px;
+  }
+
+  .glass {
+    @apply backdrop-blur-xl border;
+    background: rgba(7, 17, 32, 0.65);
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .glass-strong {
+    @apply backdrop-blur-xl border;
+    background: rgba(12, 24, 44, 0.75);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .glass-card {
+    @apply rounded-2xl border shadow-card transition-all duration-500;
+    background: rgba(7, 17, 32, 0.65);
+    border-color: rgba(255, 255, 255, 0.06);
+    will-change: transform;
+  }
+
+  .glass-card:hover {
+    transform: translateY(-6px) scale(1.01);
+    border-color: rgba(0, 229, 168, 0.15);
+    box-shadow: 0 20px 80px rgba(0, 229, 168, 0.08), 0 0 0 1px rgba(0, 229, 168, 0.15);
+  }
+
+  .skeleton {
+    @apply relative overflow-hidden rounded-lg;
+    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite linear;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-text-primary to-text-secondary;
+  }
+
+  .text-gradient-accent {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#00E5A8] to-[#22D3EE];
+  }
+
+  .nav-pill {
+    @apply relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+           transition-all duration-[350ms] ease-premium cursor-pointer;
+  }
+
+  .nav-pill-active {
+    @apply text-white;
+    background: rgba(0, 229, 168, 0.10);
+  }
+
+  .nav-pill-inactive {
+    @apply text-text-secondary;
+  }
+
+  .nav-pill-inactive:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: rgb(var(--text-primary));
+  }
+
+  .stat-card {
+    @apply glass-card p-5;
+  }
+
+  .input-field {
+    @apply w-full rounded-xl border px-3.5 py-2.5 text-sm
+           text-text-primary placeholder:text-text-secondary/40
+           focus:outline-none focus:ring-2 focus:ring-[#00E5A8]/20 focus:border-[#00E5A8]/50
+           transition-all duration-250;
+    background: rgba(7, 17, 32, 0.65);
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .input-field:focus {
+    background: rgba(7, 17, 32, 0.8);
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center font-medium rounded-xl
+           transition-all duration-300 ease-premium
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00E5A8]/30
+           disabled:opacity-40 disabled:cursor-not-allowed;
+    background: linear-gradient(135deg, #00E5A8 0%, #22D3EE 100%);
+    color: #030712;
+    box-shadow: 0 0 30px rgba(0, 229, 168, 0.15);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    transform: scale(1.03);
+    box-shadow: 0 0 40px rgba(0, 229, 168, 0.25);
+  }
+
+  .btn-primary:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center font-medium rounded-xl
+           transition-all duration-300 ease-premium
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00E5A8]/30
+           disabled:opacity-40 disabled:cursor-not-allowed;
+    background: rgba(7, 17, 32, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: rgb(var(--text-primary));
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    background: rgba(12, 24, 44, 0.75);
+    border-color: rgba(255, 255, 255, 0.10);
+  }
+
+  .btn-secondary:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center font-medium rounded-xl
+           transition-all duration-300 ease-premium
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00E5A8]/30
+           disabled:opacity-40 disabled:cursor-not-allowed;
+    color: rgb(var(--text-secondary));
+  }
+
+  .btn-ghost:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.04);
+    color: rgb(var(--text-primary));
+  }
+
+  .stagger-1 { animation-delay: 0ms; }
+  .stagger-2 { animation-delay: 80ms; }
+  .stagger-3 { animation-delay: 160ms; }
+  .stagger-4 { animation-delay: 240ms; }
+  .stagger-5 { animation-delay: 320ms; }
+  .stagger-6 { animation-delay: 400ms; }
+  .stagger-7 { animation-delay: 480ms; }
+  .stagger-8 { animation-delay: 560ms; }
+}
