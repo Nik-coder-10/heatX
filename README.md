@@ -1,6 +1,6 @@
 <div align="center">
 
-# Urban Heat Mitigation Platform
+# HeatX - Urban Heat Mitigation Platform
 
 [![Build](https://img.shields.io/github/actions/workflow/status/urbanheat/uhmp/ci.yml?branch=main&style=flat-square&logo=github)](https://github.com/urbanheat/uhmp/actions)
 [![Tests](https://img.shields.io/badge/tests-450+_passing-2ea44f?style=flat-square&logo=pytest)](https://github.com/urbanheat/uhmp)
