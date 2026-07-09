@@ -22,7 +22,7 @@ passlib[bcrypt]==1.7.4
 email-validator==2.1.0
 
 # Async / Task Queue
-celery==5.4.0
+celery==5.6.3
 redis==5.0.1
 flower==2.0.0
 aiofiles==23.2.1
