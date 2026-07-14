@@ -3,7 +3,7 @@
 # Vite dev server with HMR
 # =============================================================================
 
-FROM node:20-alpine
+FROM node:26-alpine
 
 ENV NODE_ENV=development
 
