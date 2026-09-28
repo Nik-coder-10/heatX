@@ -18,7 +18,7 @@ COPY frontend/ .
 RUN npm run build
 
 # Stage 2: Serve with nginx
-FROM nginx:1.25-alpine
+FROM nginx:1.29-alpine
 
 ENV NGINX_PORT=80
 
